@@ -3,15 +3,13 @@ import configparser
 import time
 import random
 
-
-#initializing the configparser
-config = configparser.ConfigParser()
-config.read("config.ini")
-
 #initializing game
 (numpass, numfail) = pygame.init()
 print(f"Successfull inits: {numpass}, Unsuccessfull inits: {numfail}")
 
+#initializing the configparser
+config = configparser.ConfigParser()
+config.read("config.ini")
 
 #window
 displayw = int(config["WINDOW"]["display_width"])
@@ -32,6 +30,7 @@ extra_life_sprite = pygame.transform.scale(pygame.image.load(str(config["POWERUP
 clock = pygame.time.Clock()
 fps = 60
 target_fps = 60
+
 
 class MainRun(object):
     def __init__(self):
@@ -183,6 +182,7 @@ class MainRun(object):
                         spacerock.__init__()   
                         extra_life.__init__()                   
                         self.main()    
+    
     
     def start_game(self):
         root.fill(displaycolor)
@@ -389,9 +389,10 @@ class Collision_detection(object):
             player_shot.bullets.remove(shot)
             #add points
             player.score += 1
-
+    
 
 if __name__ == "__main__":
+    
     #initializing objects
     player = Player()
     player_shot = Shot()
@@ -399,4 +400,4 @@ if __name__ == "__main__":
     extra_life = ExtraLife()
     collision = Collision_detection()
     MainRun()
-    
+        
