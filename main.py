@@ -35,11 +35,13 @@ target_fps = 60
 
 class MainRun(object):
     def __init__(self):
-        self.main()
+        self.start_game()
         
     def main(self):
         #time for independant framerate
-        prev_time = time.time()        
+        prev_time = time.time()  
+        loop_iteration = 0
+        self.randomizer_list()      
         
         #game loop
         running = True
@@ -86,18 +88,20 @@ class MainRun(object):
                             player_shot.bullets.append([player.xpos+(player.xsize/2)-(playershot_sprite.get_width()/2),
                                                         player.ypos,
                                                         playershot_sprite.get_width(),
-                                                        playershot_sprite.get_height()])
+                                                        playershot_sprite.get_height()])        
+
+            if loop_iteration == 10000:
+                self.randomizer_list()
+                loop_iteration = 0
             
-            #moving and generating the space rocks
-            if random.randint(0, 100) == 0:
-                spacerock.generate_rock_data()
-                
-            
-            #generating a extra life
-            if len(player.health) < 3:
-                if random.randint(0, 400) == 0:
-                    extra_life.generate_data()
+            if len(spacerock.rocks) < 5:
+                if self.rock_list[loop_iteration] == 10:
+                    spacerock.generate_rock_data()
                     
+                if len(extra_life.extra_life_list) < 1:
+                        if len(player.health) < 3:
+                            if self.heart_list[loop_iteration] == 10:
+                                extra_life.generate_data()
                 
             #moving objects
             player_shot.move(dt)
@@ -106,16 +110,14 @@ class MainRun(object):
             
             #detecting collisions
             for rock in spacerock.rocks:
-                #rock and spaceship
                 collision.collision_detect_rock_ship(rock)
-                
                 for bullet in player_shot.bullets:
-                    #rock and bullet
                     collision.collision_detect_rock_shot(rock, bullet)
                     
-                    for life in extra_life.extra_life_list:
-                        #bullet and extra life
-                        collision.collision_detect_extralife_shot(bullet, life)
+            for life in extra_life.extra_life_list:
+                for bullet in player_shot.bullets:
+                    collision.collision_detect_extralife_shot(bullet, life)
+                
             
             #drawing objects
             spacerock.draw()
@@ -129,19 +131,46 @@ class MainRun(object):
             
             pygame.display.update()
             clock.tick(fps)
+            loop_iteration += 1
             
             #if player has 0 lives game is lost
             if len(player.health) <= 0:
-                print("Game over")
                 self.game_over_menu()
-    
+                                     
+
+    def randomizer_list(self):
+        self.rock_list = [random.randint(0, 100) for _ in range(10000)]
+        self.heart_list = [random.randint(0, 400) for _ in range(10000)]
+        
     
     def game_over_menu(self):       
-        #game loop
+        root.fill(displaycolor)
+        
+        font1 = pygame.font.Font(None, 50)
+        font2 = pygame.font.Font(None, 30)
+        font3 = pygame.font.Font(None, 20)
+        
+        string1 = "Game over"
+        string2 = str(f"You got {player.score} points!")
+        string3 = "Press space to restart"
+        
+        string1_width, string1_height = font1.size(string1)
+        string2_width, string2_height = font2.size(string2)
+        string3_width, string3_height = font3.size(string3)
+        
+        text1 = font1.render(string1, 1, (255, 255, 255))
+        text2 = font2.render(string2, 1, (255, 255, 255))
+        text3 = font3.render(string3, 1, (255, 255, 255))
+        
+        root.blit(text1, ((displayw/2)-(string1_width/2), (displayh/2)-string1_height))
+        root.blit(text2, ((displayw/2)-(string2_width/2), (displayh/2)+string2_height))
+        root.blit(text3, ((displayw/2)-(string3_width/2), displayh-(string3_height*2)))
+        pygame.display.update()
+
+        time.sleep(1.5)
+        
         running = True
         while running:
-            root.fill(displaycolor)
-            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -151,36 +180,47 @@ class MainRun(object):
                     if event.key == pygame.K_SPACE:
                         player.__init__()  
                         player_shot.__init__()
-                        spacerock.__init__()                      
+                        spacerock.__init__()   
+                        extra_life.__init__()                   
+                        self.main()    
+    
+    def start_game(self):
+        root.fill(displaycolor)
+
+        font1 = pygame.font.Font(None, 50)
+        font2 = pygame.font.Font(None, 30)
+        
+        string1 = "Welcome"
+        string2 = "Press Space to start"
+        
+        string1_width, string1_height = font1.size(string1)
+        string2_width, string2_height = font2.size(string2)
+
+        text1 = font1.render(string1, 1, (255, 255, 255))
+        text2 = font2.render(string2, 1, (255, 255, 255))
+
+        root.blit(text1, ((displayw/2)-(string1_width/2), (displayh/2)-string1_height))
+        root.blit(text2, ((displayw/2)-(string2_width/2), (displayh/2)+string2_height))
+        pygame.display.update()
+        
+        time.sleep(1.5)
+        
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+            
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        player.__init__()  
+                        player_shot.__init__()
+                        spacerock.__init__()
+                        extra_life.__init__()                     
                         self.main()
-            
-            font1 = pygame.font.Font(None, 50)
-            font2 = pygame.font.Font(None, 30)
-            font3 = pygame.font.Font(None, 20)
-                        
-            string1 = "Game over"
-            string2 = str(f"You got {player.score} points!")
-            string3 = "Press space to restart"
-            
-            string1_width, string1_height = font1.size(string1)
-            string2_width, string2_height = font2.size(string2)
-            string3_width, string3_height = font3.size(string3)
-            
-            text1 = font1.render(string1, 1, (255, 255, 255))
-            text2 = font2.render(string2, 1, (255, 255, 255))
-            text3 = font3.render(string3, 1, (255, 255, 255))
-            
-            root.blit(text1, ((displayw/2)-(string1_width/2), (displayh/2)-string1_height))
-            root.blit(text2, ((displayw/2)-(string2_width/2), (displayh/2)+string2_height))
-            root.blit(text3, ((displayw/2)-(string3_width/2), displayh-(string3_height*2)))
-            
-            pygame.display.update()
-            clock.tick(fps)
-    
-    
-    def start_game():
-        pass
-            
+
+
 
 class Player(object):
     def __init__(self):
@@ -319,7 +359,14 @@ class Collision_detection(object):
                 player.health.append([75, displayh-player_health_sprite.get_height()-5])
                 
             extra_life.extra_life_list.remove(life)
-                
+            player_shot.bullets.remove(shot)
+            
+    def collision_detect_extralife_ship(self, life):
+        if pygame.Rect(life[0], [1], extra_life_sprite.get_width(), extra_life_sprite.get_height()).colliderect(
+            pygame.Rect(player.xpos, player.ypos, player.xsize, player.ysize)):
+            
+            extra_life.extra_life_list.remove(life)
+                            
         
     def collision_detect_rock_ship(self, rock):
         #collision detection
@@ -330,18 +377,16 @@ class Collision_detection(object):
             
             #delete last element in health list
             del player.health[-1]
-            
-            print("chrashed ship")
-            
+                        
             
     def collision_detect_rock_shot(self, rock, shot):
         #collision detection
         if pygame.Rect(rock[0], rock[1], rock[2], rock[3]).colliderect(
             pygame.Rect(shot[0], shot[1], shot[2], shot[3])):
             
-            spacerock.rocks.remove(rock)
+            if rock in spacerock.rocks:
+                spacerock.rocks.remove(rock)
             player_shot.bullets.remove(shot)
-            print("Shot hit rock")
             #add points
             player.score += 1
 
@@ -354,3 +399,5 @@ if __name__ == "__main__":
     extra_life = ExtraLife()
     collision = Collision_detection()
     MainRun()
+    
+    
